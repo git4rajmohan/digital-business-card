@@ -33,7 +33,6 @@ const R = [
   ['>LinkedInを見る</a>', '>View LinkedIn</a>'],
   ['>連絡先を共有・保存（VCF）</button>', '>Share / Save Contact (VCF)</button>'],
   ['<p class="vcf-note">iPhoneの場合：共有メニューから「メッセージ」「メール」または「ファイルに保存」を選択してください。受信したVCFファイルを開き、「連絡先に追加」を選択してください。</p>', '<p class="vcf-note">On iPhone, choose Messages, Mail, or Save to Files from the Share Sheet. Open the received VCF file and select Add to Contacts.</p>'],
-  ['"共有に失敗しました。もう一度お試しください。"', '"Sharing failed. Please try again."'],
   ['"VCFファイル（" + CONTACT.fileName + "）をダウンロードしました。"', 'CONTACT.fileName + " has been downloaded. Open it with your Contacts app."'],
   ['"TITLE:" + escVcf("AI評価エンジニア｜QAリード")', '"TITLE:" + escVcf("AI Evaluation Engineer | QA Lead")'],
   ['"NOTE:" + escVcf("IT業界で20年以上の経験。AI評価、RAG、Agentic AI、エンタープライズQA。")', '"NOTE:" + escVcf("20+ years of IT experience. AI evaluation, RAG, Agentic AI, enterprise QA.")'],
