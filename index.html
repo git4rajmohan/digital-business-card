@@ -72,6 +72,7 @@ h2 {
 }
 .button.secondary { background:#fff;color:var(--blue); }
 .button:hover { filter:brightness(.97); }
+.vcf-note { margin:10px 0 0;font-size:12px;color:var(--muted); }
 .qr-panel {
   display:flex;align-items:center;gap:17px;padding:15px;
   background:#f7f9fd;border:1px solid var(--line);border-radius:14px;
@@ -149,7 +150,7 @@ footer { padding:0 20px 22px;text-align:center;color:var(--muted);font-size:11px
     </section>
 
     <div class="actions">
-      <button class="button" id="saveVcf" type="button">連絡先を保存（VCF）</button>
+      <button class="button" id="saveVcf" type="button">連絡先を共有・保存（VCF）</button>
       <a class="button secondary" href="https://www.linkedin.com/in/seevaram-rajmohan-04a4a04a/" target="_blank" rel="noopener noreferrer">LinkedInを見る</a>
     </div>
 
@@ -178,26 +179,53 @@ document.getElementById("emailLink").href = "mailto:" + CONTACT.email;
 document.getElementById("phoneText").textContent = CONTACT.phone;
 document.getElementById("phoneLink").href = "tel:" + CONTACT.phone.replace(/[^\d+]/g, "");
 
-// Generate and download the vCard directly from this HTML file.
+// Generate the vCard, share it natively (iPhone Safari share sheet),
+// or fall back to a direct download (Android Chrome, Windows browsers).
 // No separate .vcf file is required to be stored or shared.
-document.getElementById("saveVcf").addEventListener("click", function () {
+const escVcf = (s) =>
+  String(s)
+    .replace(/\\/g, "\\\\")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;")
+    .replace(/\n/g, "\\n");
+
+document.getElementById("saveVcf").addEventListener("click", async function () {
+  const status = document.getElementById("vcfStatus");
   const vcard = [
     "BEGIN:VCARD",
     "VERSION:3.0",
     "N:Rajmohan;Seevaram;;;",
-    "FN:セーヴァラーム・ラージモハン",
-    "NICKNAME:Seevaram Rajmohan",
-    "TITLE:AI評価エンジニア｜QAリード",
-    "EMAIL;TYPE=INTERNET:" + CONTACT.email,
-    "TEL;TYPE=CELL:" + CONTACT.phone,
+    "FN:" + escVcf("セーヴァラーム・ラージモハン"),
+    "NICKNAME:" + escVcf("Seevaram Rajmohan"),
+    "TITLE:" + escVcf("AI評価エンジニア｜QAリード"),
+    "EMAIL;TYPE=INTERNET:" + escVcf(CONTACT.email),
+    "TEL;TYPE=CELL:" + escVcf(CONTACT.phone),
     "URL:https://www.linkedin.com/in/seevaram-rajmohan-04a4a04a/",
     "URL:https://github.com/git4rajmohan/AI_Projects",
-    "NOTE:IT業界で20年以上の経験。AI評価、RAG、Agentic AI、エンタープライズQA。",
+    "NOTE:" + escVcf("IT業界で20年以上の経験。AI評価、RAG、Agentic AI、エンタープライズQA。"),
     "END:VCARD"
   ].join("\r\n") + "\r\n";
 
-  const blob = new Blob(["\uFEFF" + vcard], { type: "text/vcard;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
+  // UTF-8, no BOM (BOM breaks iOS contact import of the shared file).
+  const vcardBlob = new Blob([vcard], { type: "text/vcard;charset=utf-8" });
+  const vcardFile = new File([vcardBlob], CONTACT.fileName, { type: "text/vcard" });
+
+  // iPhone Safari: native share sheet (Messages, Mail, Save to Files…).
+  // Runs directly inside this click handler; no title/text/url metadata.
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [vcardFile] })) {
+    try {
+      await navigator.share({ files: [vcardFile] });
+    } catch (err) {
+      // User closed the share sheet → stay quiet. Real errors → message.
+      if (err && err.name !== "AbortError") {
+        status.textContent = "共有に失敗しました。もう一度お試しください。";
+      }
+    }
+    return;
+  }
+
+  // Fallback: direct download as .vcf (Android Chrome / Windows / desktop).
+  const url = URL.createObjectURL(vcardBlob);
   const a = document.createElement("a");
   a.href = url;
   a.download = CONTACT.fileName;
@@ -205,6 +233,7 @@ document.getElementById("saveVcf").addEventListener("click", function () {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1500);
+  status.textContent = "VCFファイル（" + CONTACT.fileName + "）をダウンロードしました。";
 });
 </script>
 </body>
