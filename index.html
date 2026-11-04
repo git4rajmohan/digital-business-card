@@ -72,6 +72,9 @@ h2 {
 }
 .button.secondary { background:#fff;color:var(--blue); }
 .button:hover { filter:brightness(.97); }
+.lang { display:flex;justify-content:center;gap:14px;margin:0 0 16px;font-size:13px; }
+.lang a { color:var(--muted);text-decoration:none;padding:2px 12px;border-radius:999px;border:1px solid var(--line); }
+.lang a[aria-current="page"] { color:var(--blue);border-color:var(--blue);font-weight:750;background:var(--pale); }
 .vcf-note { margin:10px 0 0;font-size:12px;color:var(--muted); }
 .qr-panel {
   display:flex;align-items:center;gap:17px;padding:15px;
@@ -107,6 +110,11 @@ footer { padding:0 20px 22px;text-align:center;color:var(--muted);font-size:11px
   </header>
 
   <div class="content">
+    <nav class="lang" aria-label="言語 / Language">
+      <a href="./index.html" aria-current="page" lang="ja">日本語</a>
+      <a href="./en.html" lang="en">English</a>
+    </nav>
+
     <section>
       <h2>プロフィール・専門分野</h2>
       <div class="summary">
@@ -154,18 +162,18 @@ footer { padding:0 20px 22px;text-align:center;color:var(--muted);font-size:11px
       <a class="button secondary" href="https://www.linkedin.com/in/seevaram-rajmohan-04a4a04a/" target="_blank" rel="noopener noreferrer">LinkedInを見る</a>
     </div>
 
-    <p class="vcf-note">iPhoneの場合：共有メニューからメッセージ・メール・「ファイルに保存」を選択してください（上部に表示される連絡先は共有先です）。受信・保存したVCFファイルをタップすると『連絡先に追加』を選択できます。</p>
+    <p class="vcf-note">iPhoneの場合：共有メニューから「メッセージ」「メール」または「ファイルに保存」を選択してください。受信したVCFファイルを開き、「連絡先に追加」を選択してください。</p>
     <p class="vcf-note" id="vcfStatus"></p>
 
 </main>
 
 <script>
 /*
- * ==========================================================
+ * ==========================
  * EDIT THESE CONTACT DETAILS
  * Update the email and phone number below:
  *   1. Open this repository at github.com → git4rajmohan/digital-business-card
- *   2. Edit index.html and change "email" and "phone" only.
+ *   2. Edit index.html AND en.html — keep the CONTACT values identical in both.
  *   GitHub Pages redeploys automatically after the commit (wait ~1 minute).
  * The email/phone links and the downloaded .vcf are generated from these values.
  * ==========================================================
@@ -192,14 +200,28 @@ const escVcf = (s) =>
     .replace(/;/g, "\\;")
     .replace(/\n/g, "\\n");
 
+// vCard 3.0 folding: max 75 octets per line, continuations start with one space.
+const foldVcf = (line) => {
+  if (new TextEncoder().encode(line).length <= 75) return line;
+  const out = [];
+  let cur = "", len = 0;
+  for (const ch of line) {
+    const b = ch.codePointAt(0) < 0x80 ? 1 : ch.codePointAt(0) < 0x800 ? 2 : ch.codePointAt(0) < 0x10000 ? 3 : 4;
+    if (len + b > 75) { out.push(cur); cur = " " + ch; len = 1 + b; }
+    else { cur += ch; len += b; }
+  }
+  out.push(cur);
+  return out.join("\r\n");
+};
+
 document.getElementById("saveVcf").addEventListener("click", async function () {
   const status = document.getElementById("vcfStatus");
   const vcard = [
     "BEGIN:VCARD",
     "VERSION:3.0",
     "N:Rajmohan;Seevaram;;;",
-    "FN:" + escVcf("セーヴァラーム・ラージモハン"),
-    "NICKNAME:" + escVcf("Seevaram Rajmohan"),
+    "FN:" + escVcf("Seevaram Rajmohan"),
+    "NICKNAME:" + escVcf("セーヴァラーム・ラージモハン"),
     "TITLE:" + escVcf("AI評価エンジニア｜QAリード"),
     "EMAIL;TYPE=INTERNET:" + escVcf(CONTACT.email),
     "TEL;TYPE=CELL:" + escVcf(CONTACT.phone),
@@ -207,7 +229,7 @@ document.getElementById("saveVcf").addEventListener("click", async function () {
     "URL:https://github.com/git4rajmohan/AI_Projects",
     "NOTE:" + escVcf("IT業界で20年以上の経験。AI評価、RAG、Agentic AI、エンタープライズQA。"),
     "END:VCARD"
-  ].join("\r\n") + "\r\n";
+  ].map(foldVcf).join("\r\n") + "\r\n";
 
   // UTF-8, no BOM (BOM breaks iOS contact import of the shared file).
   const vcardBlob = new Blob([vcard], { type: "text/vcard;charset=utf-8" });
