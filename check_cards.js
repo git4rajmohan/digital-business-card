@@ -19,7 +19,7 @@ const checks = {
   "EN hero name": en.includes("<h1>Seevaram Rajmohan</h1>"),
   "EN role": en.includes("AI Evaluation Engineer | QA Lead"),
   "FN English in en": en.includes('"FN:" + escVcf("Seevaram Rajmohan")'),
-  "NICKNAME JP in en": en.includes('"NICKNAME:" + escVcf("セーヴァラーム・ラージモハン")'),
+  "NICKNAME JP in en": en.includes('"NICKNAME:" + escVcf("シーバラム・ラージモハン")'),
   "TITLE EN in en vcard": en.includes('"TITLE:" + escVcf("AI Evaluation Engineer | QA Lead")'),
   "foldVcf both": en.includes("foldVcf") && jp.includes("foldVcf"),
   "canShare both": en.includes("navigator.canShare({ files: [vcardFile] })") && jp.includes("navigator.canShare({ files: [vcardFile] })"),
@@ -41,7 +41,7 @@ const foldVcf = (line) => {
 const C = contactOf(en);
 for (const [page, title] of [["en", "AI Evaluation Engineer | QA Lead"], ["jp", "AI評価エンジニア｜QAリード"]]) {
   const v = ["BEGIN:VCARD", "VERSION:3.0", "N:Rajmohan;Seevaram;;;", "FN:" + escVcf("Seevaram Rajmohan"),
-    "NICKNAME:" + escVcf("セーヴァラーム・ラージモハン"), "TITLE:" + escVcf(title),
+    "NICKNAME:" + escVcf("シーバラム・ラージモハン"), "TITLE:" + escVcf(title),
     "EMAIL;TYPE=INTERNET:" + escVcf(C.email), "TEL;TYPE=CELL:" + escVcf(C.phone),
     "URL:https://www.linkedin.com/in/seevaram-rajmohan-04a4a04a/", "URL:https://github.com/git4rajmohan/AI_Projects",
     "END:VCARD"].map(foldVcf).join("\r\n") + "\r\n";
