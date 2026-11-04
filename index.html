@@ -237,18 +237,15 @@ document.getElementById("saveVcf").addEventListener("click", async function () {
   const vcardBlob = new Blob([vcard], { type: "text/vcard;charset=utf-8" });
   const vcardFile = new File([vcardBlob], CONTACT.fileName, { type: "text/vcard" });
 
-  // iPhone Safari: native share sheet (Messages, Mail, Save to Files…).
-  // Runs directly inside this click handler; no title/text/url metadata.
+  // iPhone Safari (and Windows share flyout): native share. If the flyout
+  // fails, fall through to the download below instead of dead-ending.
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [vcardFile] })) {
     try {
       await navigator.share({ files: [vcardFile] });
+      return;
     } catch (err) {
-      // User closed the share sheet → stay quiet. Real errors → message.
-      if (err && err.name !== "AbortError") {
-        status.textContent = "共有に失敗しました。もう一度お試しください。";
-      }
+      if (err && err.name === "AbortError") return; // user closed the share sheet
     }
-    return;
   }
 
   // Fallback: direct download as .vcf (Android Chrome / Windows / desktop).
